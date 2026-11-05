@@ -98,7 +98,9 @@ Result RunOne(string relProject) {
     if (tfm.EndsWith("-windows")) {
         psi.Environment["DOTNET_STARTUP_HOOKS"] = hook;
         // WPF's OpenGL control needs NV_DX_interop, which Mesa lacks; WPF apps keep the system OpenGL.
-        bool usesWpf = Prop("UseWPF").Equals("true", StringComparison.OrdinalIgnoreCase);
+        // Projects that enable both WinForms and WPF are WinForms apps here and get Mesa.
+        bool usesWpf = Prop("UseWPF").Equals("true", StringComparison.OrdinalIgnoreCase)
+                    && !Prop("UseWindowsForms").Equals("true", StringComparison.OrdinalIgnoreCase);
         if (openglDir != null && !usesWpf) {
             foreach (var dll in Directory.GetFiles(openglDir, "*.dll")) {
                 var target = Path.Combine(binDir, Path.GetFileName(dll));
