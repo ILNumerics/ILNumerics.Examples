@@ -29,6 +29,15 @@ internal class StartupHook {
         int delay = int.TryParse(Environment.GetEnvironmentVariable("ILN_SMOKE_DELAY"), out var d) ? d : 8000;
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) => Fail("Unhandled exception", e.ExceptionObject);
+        // Record the first exceptions thrown inside ILNumerics / OpenTK, even if they are caught: they explain
+        // renderer fallbacks and blank panels.
+        AppDomain.CurrentDomain.FirstChanceException += (s, e) => {
+            try {
+                var src = e.Exception.TargetSite?.DeclaringType?.FullName ?? "";
+                if (!(src.StartsWith("ILNumerics.Drawing") || src.StartsWith("OpenTK"))) return;
+                lock (s_firstChance) if (s_firstChance.Count < 8) s_firstChance.Add($"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}");
+            } catch { }
+        };
         try {
             // WinForms would otherwise show its "continue / quit" dialog and keep the process alive.
             System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.ThrowException);
@@ -57,6 +66,7 @@ internal class StartupHook {
     }
 
     static readonly List<string> s_dialogs = new();
+    static readonly List<string> s_firstChance = new();
 
     static void CaptureLoop(int delay) {
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -217,6 +227,7 @@ internal class StartupHook {
                 result["driver" + (i == 0 ? "" : "." + i)] = DriverName(panels[i]);
                 var scene = CurrentScene(panels[i]);
                 scene.Configure();
+                result["drawables" + (i == 0 ? "" : "." + i)] = scene.Find<ILNumerics.Drawing.Drawable>().Count();
                 using var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White);
                 drv.Render();
                 drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
@@ -240,13 +251,16 @@ internal class StartupHook {
 
     static void WriteResult(Dictionary<string, object?> result) {
         lock (s_dialogs) if (s_dialogs.Count > 0) result["dialogs"] = s_dialogs.ToArray();
+        lock (s_firstChance) if (s_firstChance.Count > 0) result["exceptions"] = s_firstChance.ToArray();
         File.WriteAllText(Path.Combine(s_outDir!, s_name + ".result.json"),
             JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
     }
 
     static void Fail(string what, object? exc) {
         Interlocked.Exchange(ref s_failed, 1);
-        try { File.AppendAllText(Path.Combine(s_outDir!, s_name + ".error.txt"), $"{what}:{Environment.NewLine}{exc}{Environment.NewLine}"); } catch { }
+        string earlier = "";
+        lock (s_firstChance) if (s_firstChance.Count > 0) earlier = Environment.NewLine + "Earlier ILNumerics/OpenTK exceptions:" + Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", s_firstChance);
+        try { File.AppendAllText(Path.Combine(s_outDir!, s_name + ".error.txt"), $"{what}:{Environment.NewLine}{exc}{earlier}{Environment.NewLine}"); } catch { }
     }
 
     static void Log(string msg) => Console.Error.WriteLine("[iln-smoke] " + msg);

@@ -48,10 +48,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download --repo pal1000/mesa-dist-win --pattern "mesa3d-*-release-msvc.7z" --output mesa.7z
+          # pinned: a release whose x64 folder ships the WGL driver (opengl32.dll + libgallium_wgl.dll)
+          gh release download 24.3.4 --repo pal1000/mesa-dist-win --pattern "mesa3d-*-release-msvc.7z" --output mesa.7z
           7z x mesa.7z -omesa -y | Out-Null
+          $gl = Get-ChildItem mesa -Recurse -Filter opengl32.dll | Where-Object { $_.DirectoryName -match 'x64' } | Select-Object -First 1
+          if (-not $gl) { Get-ChildItem mesa -Recurse | Select-Object FullName; throw "opengl32.dll not found in the Mesa archive" }
           New-Item -ItemType Directory -Force mesa-x64 | Out-Null
-          Copy-Item mesa/x64/*.dll mesa-x64/
+          # only the WGL/llvmpipe parts; they get copied next to every example
+          foreach ($n in 'opengl32.dll', 'libgallium_wgl.dll', 'libglapi.dll') {
+            $f = Join-Path $gl.DirectoryName $n
+            if (Test-Path $f) { Copy-Item $f mesa-x64/ }
+          }
           Get-ChildItem mesa-x64 | Select-Object Name, Length | Format-Table
 
       # Starts every example without a license key (free Starter Edition), captures a screenshot and an

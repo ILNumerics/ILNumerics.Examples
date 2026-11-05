@@ -145,7 +145,9 @@ Result RunOne(string relProject) {
         if (!File.Exists(path)) { res.Message ??= "no render produced"; return res; }
         res.Render = renderFile;
         res.Coverage = Coverage(path);
-        if (res.Coverage < 0.5) { res.Message = $"render looks blank ({res.Coverage:0.00}% non-background pixels)"; return res; }
+        var screen = Path.Combine(outDir, name + ".screen.png");
+        if (File.Exists(screen)) res.ScreenCoverage = Coverage(screen);
+        if (res.Coverage < 0.5) { res.Message = $"render looks blank ({res.Coverage:0.00}% non-background pixels; screenshot {res.ScreenCoverage:0.0}%)"; return res; }
     }
     if (isWeb && res.Message != null) return res;
     res.Passed = true;
@@ -241,6 +243,7 @@ class Result {
     public string? Message { get; set; }
     public double Seconds { get; set; }
     public double? Coverage { get; set; }
+    public double? ScreenCoverage { get; set; }
     public string? Render { get; set; }
     public string? IlnVersion { get; set; }
     public bool LicenseMention { get; set; }
