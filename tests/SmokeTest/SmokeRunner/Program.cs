@@ -7,6 +7,7 @@ using System.Xml.Linq;
 // Smoke + render test for all examples.
 //
 //   SmokeRunner --root <repo> --out <results dir> --hook <SmokeHook.dll> [--config Release] [--delay 8000] [--timeout 120]
+//               [--renderer GDI|OpenGL|default] [--only <path part>]
 //
 // For every project in ILNumerics.Examples.slnx (except tests/ and Benchmarks/) it starts the built example
 // with no license key, lets it run, and classifies the outcome:
@@ -24,6 +25,9 @@ string config = opt.GetValueOrDefault("config", "Release");
 int delay = int.Parse(opt.GetValueOrDefault("delay", "8000"));
 int timeoutSec = int.Parse(opt.GetValueOrDefault("timeout", "120"));
 string? only = opt.GetValueOrDefault("only");
+// Renderer forced in all windowed examples. GDI (software) is deterministic and needs no GPU; pass "default" to
+// keep ILNumerics' own choice (OpenGL with GDI fallback).
+string renderer = opt.GetValueOrDefault("renderer", "GDI");
 
 Directory.CreateDirectory(outDir);
 var knownFailures = ReadList(Path.Combine(root, "tests", "SmokeTest", "known-failures.txt"));
@@ -78,6 +82,7 @@ Result RunOne(string relProject) {
     psi.Environment["ILN_SMOKE_OUT"] = outDir;
     psi.Environment["ILN_SMOKE_NAME"] = name;
     psi.Environment["ILN_SMOKE_DELAY"] = delay.ToString();
+    if (!renderer.Equals("default", StringComparison.OrdinalIgnoreCase)) psi.Environment["ILN_SMOKE_RENDERER"] = renderer;
     if (tfm.EndsWith("-windows")) psi.Environment["DOTNET_STARTUP_HOOKS"] = hook;
     int port = 0;
     if (isWeb) {
@@ -184,7 +189,7 @@ static double Coverage(string png) {
 void WriteSummary(List<Result> rs) {
     var ver = rs.Select(r => r.IlnVersion).FirstOrDefault(v => v != null) ?? "unknown";
     var sb = new StringBuilder();
-    sb.AppendLine($"## Example smoke test (ILNumerics {ver}, .NET {Environment.Version}, no license key)");
+    sb.AppendLine($"## Example smoke test (ILNumerics {ver}, .NET {Environment.Version}, renderer {renderer}, no license key)");
     sb.AppendLine();
     sb.AppendLine($"{rs.Count(r => r.Passed)} passed, {rs.Count(r => !r.Passed && !r.KnownFailure)} failed, {rs.Count(r => !r.Passed && r.KnownFailure)} known failures. Screenshots and renders are in the `smoke-results` artifact.");
     sb.AppendLine();

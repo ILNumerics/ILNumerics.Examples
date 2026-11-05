@@ -13,6 +13,7 @@ using System.Threading;
 ///   ILN_SMOKE_OUT    output directory for result files (hook does nothing when unset)
 ///   ILN_SMOKE_NAME   base file name for this example's results
 ///   ILN_SMOKE_DELAY  milliseconds to let the example run before capturing (default 8000)
+///   ILN_SMOKE_RENDERER  optional ILNumerics renderer to force for all panels (e.g. GDI, OpenGL)
 /// </summary>
 internal class StartupHook {
 
@@ -35,8 +36,24 @@ internal class StartupHook {
             Log("could not set WinForms exception mode: " + exc.Message);
         }
 
+        try {
+            ConfigureIlNumerics(Environment.GetEnvironmentVariable("ILN_SMOKE_RENDERER"));
+        } catch (Exception exc) {
+            Log("could not configure ILNumerics: " + exc.Message);
+        }
+
         var t = new Thread(() => CaptureLoop(delay)) { IsBackground = true, Name = "ILN smoke capture" };
         t.Start();
+    }
+
+    // Separate method, so a missing ILNumerics.Drawing assembly only fails this call.
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    static void ConfigureIlNumerics(string? renderer) {
+        // A modal "falling back to GDI" message box would block the unattended run.
+        ILNumerics.Settings.ShowMessageBoxOnGDIFallback = false;
+        if (!string.IsNullOrEmpty(renderer)) {
+            ILNumerics.Settings.DefaultRenderer = Enum.Parse<ILNumerics.Drawing.RendererTypes>(renderer, ignoreCase: true);
+        }
     }
 
     static void CaptureLoop(int delay) {
@@ -154,6 +171,7 @@ internal class StartupHook {
             try {
                 result["driver" + (i == 0 ? "" : "." + i)] = DriverName(panels[i]);
                 var scene = CurrentScene(panels[i]);
+                scene.Configure();
                 using var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White);
                 drv.Render();
                 drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
