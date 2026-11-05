@@ -50,7 +50,9 @@ namespace LoadingMatFiles
                 using (Scope.Enter())
                 {
                     Array<char> carr = file.Get<H5Dataset>("carr").Get<char>();
-                    carr.a = "I am Changed!".ToArray();
+                    // The dataset has a fixed size (not extendable): keep its length and shape.
+                    Array<char> changed = "I am Changed!".PadRight((int)carr.S.NumberOfElements).ToArray();
+                    carr.a = reshape(changed, carr.S[0], carr.S[1]);
                     file.Get<H5Dataset>("carr").Set(carr);
                 }
             }

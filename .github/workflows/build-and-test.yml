@@ -41,10 +41,23 @@ jobs:
       - name: Build all examples
         run: dotnet build ILNumerics.Examples.slnx -c Release --no-restore
 
+      # The hosted runners have no GPU. Mesa's llvmpipe provides a full software OpenGL, so the examples take the
+      # same OpenGL path as on a user's machine instead of ILNumerics' GDI fallback.
+      - name: Get Mesa software OpenGL
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo pal1000/mesa-dist-win --pattern "mesa3d-*-release-msvc.7z" --output mesa.7z
+          7z x mesa.7z -omesa -y | Out-Null
+          New-Item -ItemType Directory -Force mesa-x64 | Out-Null
+          Copy-Item mesa/x64/*.dll mesa-x64/
+          Get-ChildItem mesa-x64 | Select-Object Name, Length | Format-Table
+
       # Starts every example without a license key (free Starter Edition), captures a screenshot and an
       # offscreen software rendering of each scene, and fails on crashes, hangs, errors and blank renders.
       - name: Smoke and render test
-        run: dotnet run --project tests/SmokeTest/SmokeRunner -c Release --no-build -- --root . --out smoke-results --hook tests/SmokeTest/SmokeHook/bin/Release/net10.0-windows/SmokeHook.dll
+        run: dotnet run --project tests/SmokeTest/SmokeRunner -c Release --no-build -- --root . --out smoke-results --hook tests/SmokeTest/SmokeHook/bin/Release/net10.0-windows/SmokeHook.dll --opengl mesa-x64
 
       - name: Upload screenshots and renders
         if: always()

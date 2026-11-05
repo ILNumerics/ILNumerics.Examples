@@ -25,7 +25,7 @@ namespace ILNumerics.VisualDrawingTestApp.Windows {
 
         public MainWindow() {
             //GDIDriver.IsGDIPlusSupported = false;
-            Settings.ThrowWhenStarterPlan = true; 
+            // Settings.ThrowWhenStarterPlan = true; // needs a licensed build: throws under the free Starter plan
             InitializeComponent();
             winFormsHost1.Child = ilnPanel_WF_GDI;
             winFormsHost2.Child = ilnPanel_WF_OGL;

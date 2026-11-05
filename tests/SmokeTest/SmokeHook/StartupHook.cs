@@ -56,10 +56,14 @@ internal class StartupHook {
         }
     }
 
+    static readonly List<string> s_dialogs = new();
+
     static void CaptureLoop(int delay) {
-        Thread.Sleep(delay);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < delay) { DismissDialogs(); Thread.Sleep(500); }
         // give slow examples a few more seconds to show their first window
         for (int i = 0; i < 10; i++) {
+            DismissDialogs();
             try {
                 if (TryCaptureWinForms() || TryCaptureWpf()) {
                     Environment.Exit(Volatile.Read(ref s_failed) == 0 ? 0 : 3);
@@ -73,6 +77,41 @@ internal class StartupHook {
         // No window: a console example. Let it finish on its own; the runner enforces a timeout.
         Log("no window found");
     }
+
+    #region Dialogs
+    // Many examples greet the user with a MessageBox. Close such dialogs (class #32770) of this process
+    // so the main window can show up; their text is recorded in the result.
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr l);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool EnumChildWindows(IntPtr parent, EnumProc cb, IntPtr l);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] static extern int GetClassName(IntPtr h, System.Text.StringBuilder s, int n);
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern IntPtr PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
+    delegate bool EnumProc(IntPtr h, IntPtr l);
+
+    static void DismissDialogs() {
+        try {
+            uint me = (uint)Environment.ProcessId;
+            EnumWindows((h, _) => {
+                GetWindowThreadProcessId(h, out var pid);
+                if (pid != me || !IsWindowVisible(h)) return true;
+                var cls = new System.Text.StringBuilder(64); GetClassName(h, cls, 64);
+                if (cls.ToString() != "#32770") return true;
+                var text = new System.Text.StringBuilder();
+                EnumChildWindows(h, (c, __) => {
+                    var t = new System.Text.StringBuilder(1024); GetWindowText(c, t, 1024);
+                    if (t.Length > 0) text.Append(t).Append(' ');
+                    return true;
+                }, IntPtr.Zero);
+                lock (s_dialogs) s_dialogs.Add(text.ToString().Trim());
+                Log("closing dialog: " + text);
+                PostMessage(h, 0x0010 /* WM_CLOSE */, IntPtr.Zero, IntPtr.Zero);
+                return true;
+            }, IntPtr.Zero);
+        } catch (Exception exc) { Log("dialog check failed: " + exc.Message); }
+    }
+    #endregion
 
     #region WinForms
     static bool TryCaptureWinForms() {
@@ -151,11 +190,17 @@ internal class StartupHook {
     #region ILNumerics rendering
     static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
 
+    // Configure() first: it synchronizes changes the example made to panel.Scene into the scene the panel renders.
     static ILNumerics.Drawing.Scene CurrentScene(object panel) => panel switch {
-        ILNumerics.Drawing.Panel p => p.GetCurrentScene(),
-        ILNumerics.Drawing.Controls.WPF.Panel p => p.GetCurrentScene(),
+        ILNumerics.Drawing.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
+        ILNumerics.Drawing.Controls.WPF.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
         _ => throw new ArgumentException("not an ILNumerics panel")
     };
+
+    static ILNumerics.Drawing.Scene ConfigureAnd(Action configure, Func<long, ILNumerics.Drawing.Scene> get) {
+        configure();
+        return get(5000);
+    }
 
     static string? DriverName(object panel) => panel switch {
         ILNumerics.Drawing.Panel p => p.Driver.ToString(),
@@ -194,6 +239,7 @@ internal class StartupHook {
     }
 
     static void WriteResult(Dictionary<string, object?> result) {
+        lock (s_dialogs) if (s_dialogs.Count > 0) result["dialogs"] = s_dialogs.ToArray();
         File.WriteAllText(Path.Combine(s_outDir!, s_name + ".result.json"),
             JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
     }
