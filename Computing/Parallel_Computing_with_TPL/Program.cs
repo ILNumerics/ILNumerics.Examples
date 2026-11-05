@@ -68,7 +68,8 @@ namespace Parallel_Computing_with_TPL {
                     // know what you are doing (custom locking required!))! 
 
                     // Bogus ILNumerics algorithm ... 
-                    Array<double> A = zeros<double>(1000, 1000, 10);
+                    // (kept small enough for the free ILNumerics Starter Edition)
+                    Array<double> A = zeros<double>(100, 100, 10);
                     Array<double> B = (A + 3 * A + 2)[full,full, 1] + 2;
                     A = sumall(A + B);
                     Console.WriteLine(A.ToString());
