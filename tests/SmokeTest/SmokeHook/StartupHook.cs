@@ -71,8 +71,8 @@ internal class StartupHook {
     static void CaptureLoop(int delay) {
         var sw = System.Diagnostics.Stopwatch.StartNew();
         while (sw.ElapsedMilliseconds < delay) { DismissDialogs(); Thread.Sleep(500); }
-        // give slow examples a few more seconds to show their first window
-        for (int i = 0; i < 10; i++) {
+        // slow examples (e.g. generating data first): keep looking for the main window; the runner enforces a timeout
+        for (int i = 0; ; i++) {
             DismissDialogs();
             try {
                 if (TryCaptureWinForms() || TryCaptureWpf()) {
@@ -82,10 +82,9 @@ internal class StartupHook {
                 Fail("Capture failed", exc);
                 Environment.Exit(3);
             }
+            if (i == 10) Log("no window found yet");
             Thread.Sleep(1000);
         }
-        // No window: a console example. Let it finish on its own; the runner enforces a timeout.
-        Log("no window found");
     }
 
     #region Dialogs
@@ -142,6 +141,11 @@ internal class StartupHook {
 
             var panels = FindPanels(form).ToList();
             result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
+            for (int i = 0; i < panels.Count; i++) {
+                var c = (System.Windows.Forms.Control)panels[i];
+                try { SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png")); }
+                catch (Exception exc) { result["panelScreenError"] = exc.Message; }
+            }
             RenderPanels(panels, result);
         });
         WriteResult(result);
@@ -179,6 +183,19 @@ internal class StartupHook {
             var panels = new List<object>();
             CollectWpf(win, panels);
             result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
+            for (int i = 0; i < panels.Count; i++) {
+                try {
+                    Rectangle r;
+                    if (panels[i] is System.Windows.Forms.Control c) r = c.RectangleToScreen(c.ClientRectangle);
+                    else {
+                        var fe = (System.Windows.FrameworkElement)panels[i];
+                        var tl = fe.PointToScreen(new System.Windows.Point(0, 0));
+                        var br = fe.PointToScreen(new System.Windows.Point(fe.ActualWidth, fe.ActualHeight));
+                        r = Rectangle.FromLTRB((int)tl.X, (int)tl.Y, (int)br.X, (int)br.Y);
+                    }
+                    SaveScreen(r, Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png"));
+                } catch (Exception exc) { result["panelScreenError"] = exc.Message; }
+            }
             RenderPanels(panels, result);
         });
         if (found) WriteResult(result);
@@ -242,6 +259,8 @@ internal class StartupHook {
     #endregion
 
     #region helpers
+    static string Suffix(int i) => i == 0 ? "" : "." + i;
+
     static void SaveScreen(Rectangle r, string path) {
         if (r.Width <= 0 || r.Height <= 0) return;
         using var bmp = new Bitmap(r.Width, r.Height);

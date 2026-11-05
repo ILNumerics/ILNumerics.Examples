@@ -23,7 +23,7 @@ string outDir = Path.GetFullPath(opt.GetValueOrDefault("out", "smoke-results"));
 string hook = Path.GetFullPath(opt["hook"]);
 string config = opt.GetValueOrDefault("config", "Release");
 int delay = int.Parse(opt.GetValueOrDefault("delay", "8000"));
-int timeoutSec = int.Parse(opt.GetValueOrDefault("timeout", "120"));
+int timeoutSec = int.Parse(opt.GetValueOrDefault("timeout", "180"));
 string? only = opt.GetValueOrDefault("only");
 // Optional renderer forced as ILNumerics' default (GDI, OpenGL). "default" keeps ILNumerics' own choice; panels
 // whose RendererType is set in the designer keep it in any case.
@@ -88,7 +88,9 @@ Result RunOne(string relProject) {
     if (!renderer.Equals("default", StringComparison.OrdinalIgnoreCase)) psi.Environment["ILN_SMOKE_RENDERER"] = renderer;
     if (tfm.EndsWith("-windows")) {
         psi.Environment["DOTNET_STARTUP_HOOKS"] = hook;
-        if (openglDir != null) {
+        // WPF's OpenGL control needs NV_DX_interop, which Mesa lacks; WPF apps keep the system OpenGL.
+        bool usesWpf = Prop("UseWPF").Equals("true", StringComparison.OrdinalIgnoreCase);
+        if (openglDir != null && !usesWpf) {
             foreach (var dll in Directory.GetFiles(openglDir, "*.dll")) {
                 var target = Path.Combine(binDir, Path.GetFileName(dll));
                 if (!File.Exists(target)) File.Copy(dll, target);
@@ -142,16 +144,17 @@ Result RunOne(string relProject) {
     }
     if (renderFile != null) {
         var path = Path.Combine(outDir, renderFile);
-        if (!File.Exists(path)) { res.Message ??= "no render produced"; return res; }
-        res.Render = renderFile;
-        res.Coverage = Coverage(path);
-        var screen = Path.Combine(outDir, name + ".screen.png");
-        if (File.Exists(screen)) res.ScreenCoverage = Coverage(screen);
-        if (res.Coverage < 0.5) { res.Message = $"render looks blank ({res.Coverage:0.00}% non-background pixels; screenshot {res.ScreenCoverage:0.0}%)"; return res; }
+        if (File.Exists(path)) { res.Render = renderFile; res.Coverage = Coverage(path); }
+        // What the user sees: the panel's area on screen. The offscreen GDI render is kept as an artifact.
+        var panelShot = Path.Combine(outDir, name + ".panel.png");
+        if (File.Exists(panelShot)) res.ScreenCoverage = Coverage(panelShot);
+        var shown = res.ScreenCoverage ?? res.Coverage;
+        if (shown == null) { res.Message ??= "no render produced"; return res; }
+        if (shown < 0.5) { res.Message = $"panel looks blank ({shown:0.00}% non-background pixels; offscreen render {res.Coverage:0.0}%)"; return res; }
     }
     if (isWeb && res.Message != null) return res;
     res.Passed = true;
-    res.Message ??= res.Coverage is double c ? $"{c:0.0}% of render covered" : "ok";
+    res.Message ??= (res.ScreenCoverage ?? res.Coverage) is double c ? $"{c:0.0}% of panel covered (offscreen render {res.Coverage:0.0}%)" : "ok";
     return res;
 }
 
