@@ -40,6 +40,7 @@ foreach (var rel in projects) {
     r.KnownFailure = knownFailures.Contains(r.Name);
     results.Add(r);
     Console.WriteLine($"{(r.Passed ? "PASS" : r.KnownFailure ? "KNOWN" : "FAIL"),-5} {rel}  {r.Message}");
+    if (!r.Passed) PrintDetails(r);
 }
 
 WriteSummary(results);
@@ -133,6 +134,20 @@ Result RunOne(string relProject) {
     res.Passed = true;
     res.Message ??= res.Coverage is double c ? $"{c:0.0}% of render covered" : "ok";
     return res;
+}
+
+// Full diagnostics for a failed example, in a collapsible group of the CI log.
+void PrintDetails(Result r) {
+    Console.WriteLine($"::group::Details {r.Name}");
+    foreach (var ext in new[] { ".error.txt", ".result.json", ".log.txt" }) {
+        var f = Path.Combine(outDir, r.Prefix + ext);
+        if (!File.Exists(f)) continue;
+        var lines = File.ReadAllLines(f);
+        Console.WriteLine($"--- {ext} ---");
+        foreach (var l in lines.Take(80)) Console.WriteLine(l);
+        if (lines.Length > 80) Console.WriteLine($"... ({lines.Length - 80} more lines)");
+    }
+    Console.WriteLine("::endgroup::");
 }
 
 string? ProbeWeb(int port, string name, Result res) {
