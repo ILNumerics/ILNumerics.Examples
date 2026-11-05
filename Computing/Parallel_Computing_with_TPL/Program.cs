@@ -103,7 +103,7 @@ namespace Parallel_Computing_with_TPL {
             });
 
             Console.WriteLine($"FINISHED in {sw.ElapsedMilliseconds} ms.");
-            Console.Read();
+            if (!Console.IsInputRedirected) Console.Read();
 
 
         }
