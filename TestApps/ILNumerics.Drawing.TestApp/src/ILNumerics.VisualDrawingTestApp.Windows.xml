@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ILNumerics.VisualDrawingTestApp.Windows</name>
+    </assembly>
+    <members>
+        <member name="T:ILNumerics.Drawing.Tests.ScenesCollection">
+            <summary>
+            Object TestAppController, controls switching between test scenes.
+            </summary>
+        </member>
+        <member name="F:ILNumerics.Drawing.Tests.ScenesCollection.testScenes">
+            <summary>
+            A public list if all tests defined for this assembly.
+            </summary>
+        </member>
+        <member name="M:ILNumerics.Drawing.Tests.ScenesCollection.#ctor">
+            <summary>
+            Constructor, creates a list of all user defined tests in current assembly.
+            </summary>
+        </member>
+        <member name="M:ILNumerics.Drawing.Tests.ScenesCollection.GetSceneByName(System.String,System.String)">
+            <summary>
+            Method searches a scene by its type name and returns the scene object to assign to render target.
+            </summary>
+            <param name="testName">The scene name to search for.</param>
+            <returns>Object Scene with user defined scene or null if scene was not found.</returns>
+        </member>
+        <member name="T:ILNumerics.Drawing.TestCategory">
+            <summary>
+            Enumeration of all possible implemented test categories.
+            </summary>
+        </member>
+        <member name="T:ILNumerics.Drawing.TestScene">
+            <summary>
+            Abstract class description for all graphical tests.
+            </summary>
+        </member>
+        <member name="M:ILNumerics.Drawing.TestScene.#ctor(ILNumerics.Drawing.TestCategory,System.String,System.String)">
+            <summary>
+            Test scene constructor.
+            </summary>
+        </member>
+        <member name="M:ILNumerics.Drawing.TestScene.GetScene">
+            <summary>
+            Method returns user defined scene.
+            </summary>
+            <returns>Object Scene.</returns>
+        </member>
+        <member name="M:ILNumerics.Drawing.TestScene.GetName">
+            <summary>
+            Method returns user defined test name.
+            </summary>
+            <returns>String containing test name.</returns>
+        </member>
+        <member name="M:ILNumerics.Drawing.TestScene.GetDescription">
+            <summary>
+            Method returns user defined test short description.
+            </summary>
+            <returns>String containing test description.</returns>
+        </member>
+        <member name="M:ILNumerics.Drawing.TestScene.GetCategory">
+            <summary>
+            Method returns user defined test category.
+            </summary>
+            <returns>String containing test category.</returns>
+        </member>
+        <member name="T:ILNumerics.VisualDrawingTestApp.Windows.App">
+            <summary>
+            App
+            </summary>
+            <summary>
+            Interaction logic for App.xaml
+            </summary>
+        </member>
+        <member name="M:ILNumerics.VisualDrawingTestApp.Windows.App.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+        <member name="M:ILNumerics.VisualDrawingTestApp.Windows.App.Main">
+            <summary>
+            Application Entry Point.
+            </summary>
+        </member>
+        <member name="T:ILNumerics.VisualDrawingTestApp.Windows.MainWindow">
+            <summary>
+            MainWindow
+            </summary>
+            <summary>
+            Interaction logic for MainWindow.xaml
+            </summary>
+        </member>
+        <member name="M:ILNumerics.VisualDrawingTestApp.Windows.MainWindow.InitializeComponent">
+            <summary>
+            InitializeComponent
+            </summary>
+        </member>
+    </members>
+</doc>

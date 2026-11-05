@@ -41,7 +41,7 @@ namespace FSolve_Nonlinear_Equation_System_Vector_Function {
                 Console.WriteLine("norm(F(xs)): " + norm(check)); 
             }
 
-            Console.ReadKey();
+            if (!Console.IsInputRedirected) Console.ReadKey();
         }
 
         /// <summary>

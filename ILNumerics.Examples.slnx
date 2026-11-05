@@ -1,0 +1,155 @@
+<Solution>
+  <Folder Name="/Benchmarks/">
+    <Project Path="Benchmarks/BenchmarkKMeans/BenchmarkKMeans.csproj" />
+  </Folder>
+  <Folder Name="/Computing/">
+    <Project Path="Computing/Cell_DBQuery_Example/Cell_DBQuery_Example.csproj" />
+    <Project Path="Computing/FFTSpectrumAnalyzer/FFTSpectrumAnalyzer.csproj" />
+    <Project Path="Computing/FFTTransformBasic/FFTTransformBasic.csproj" />
+    <Project Path="Computing/FFT_HanningWindow_VB_NET50/FFT_HanningWindow_VB_NET50.vbproj" />
+    <Project Path="Computing/HDF5WriteDataset/HDF5WriteDataset.csproj" />
+    <Project Path="Computing/HDF5_CompoundData_PInvoke_Example/HDF5_CompoundData_PInvoke_Example.csproj" />
+    <Project Path="Computing/HDF5_PackageData_FillDataset_Iteratively/HDF5_PackageData_FillDataset_Iteratively.csproj" />
+    <Project Path="Computing/LoadingMatFiles/LoadingMatFiles.csproj" />
+    <Project Path="Computing/Parallel_Computing_with_TPL/Parallel_Computing_with_TPL.csproj" />
+  </Folder>
+  <Folder Name="/Computing/FFTWindowReverse/">
+    <Project Path="Computing/FFTWindowReverse/FFTWindowInverse.csproj" />
+  </Folder>
+  <Folder Name="/Interpolation/">
+    <Project Path="Interpolation/BasicKrigingExample/BasicKrigingExample.csproj" />
+    <Project Path="Interpolation/InterpolationCombinedSmoothedHeightMap/InterpolationCombinedSmoothedHeightMap.csproj" />
+  </Folder>
+  <Folder Name="/Interpolation/InterpolationRescalingHugeImage/">
+    <Project Path="Interpolation/InterpolationRescalingHugeImage/InterpolationRescalingHugeImage_Project.csproj" />
+  </Folder>
+  <Folder Name="/Misc/">
+    <Project Path="Misc/InteractiveWebApp/InteractiveWebApp.csproj" />
+  </Folder>
+  <Folder Name="/Optimization/">
+    <Project Path="Optimization/ConstrainedOptimizationExample_Visual/ConstrainedOptimizationExample_Visual.csproj" />
+    <Project Path="Optimization/FSolve_Nonlinear_Equation_System_Vector_Function/FSolve_Nonlinear_Equation_System_Vector_Function.csproj" />
+    <Project Path="Optimization/LinearLeastSquaresMethods/LinearLeastSquaresMethods.csproj" />
+    <Project Path="Optimization/OptimizationToolbox_GettingStartedVisual/OptimizationToolbox_GettingStartedVisual.csproj" />
+    <Project Path="Optimization/Optimization_LeastSquareSolvers/Optimization_LeastSquareSolvers.csproj" />
+    <Project Path="Optimization/Optimization_PolynomialFit_1D/Optimization_PolynomialFit_1D.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/">
+    <Project Path="Plotting/3DBarGraph/3DBarGraph.csproj" />
+    <Project Path="Plotting/AxisLinesExample/AxisLinesExample.csproj" />
+    <Project Path="Plotting/BarPlotExample/BarPlotExample.csproj" />
+    <Project Path="Plotting/BarPlotExampleEx/BarPlotExampleEx.csproj" />
+    <Project Path="Plotting/Box Plot/Box Plot.csproj" />
+    <Project Path="Plotting/Colorbar_IndividualTicksConfiguration/Colorbar_IndividualTicksConfiguration.csproj" />
+    <Project Path="Plotting/CombinedLinePlots/CombinedLinePlots.csproj" />
+    <Project Path="Plotting/ContourPlotConfiguration/ContourPlotConfiguration.csproj" />
+    <Project Path="Plotting/CustomizingColormaps/CustomizingColormaps.csproj" />
+    <Project Path="Plotting/ExampleLegend/ExampleLegend.csproj" />
+    <Project Path="Plotting/FastSurface_Test/FastSurface_Test.csproj" />
+    <Project Path="Plotting/FinancialSlicedDataLarge/FinancialSlicedDataLarge.csproj" />
+    <Project Path="Plotting/HistogrammPlots/HistogrammPlots.csproj" />
+    <Project Path="Plotting/ImageSC_InteractiveDataRange/ImageSC_InteractiveDataRange.csproj" />
+    <Project Path="Plotting/InteractiveColorbar/InteractiveColorbar.csproj" />
+    <Project Path="Plotting/IteratingColormaps/IteratingColormaps.csproj" />
+    <Project Path="Plotting/LogAxisTicks/LogAxisTicks.csproj" />
+    <Project Path="Plotting/NoCube_PlotCube/NoCube_PlotCube.csproj" />
+    <Project Path="Plotting/PlotCubeAspectRatioExample/PlotCubeAspectRatioExample.csproj" />
+    <Project Path="Plotting/PlotCubeContentAspectRatioExample/PlotCubeContentAspectRatioExample.csproj" />
+    <Project Path="Plotting/Points4ImageSC/Points4ImageSC.csproj" />
+    <Project Path="Plotting/RectangleOverlayinPlotCube/RectangleOverlayinPlotCube.csproj" />
+    <Project Path="Plotting/RemoveContentFromPlotCubeCSharp/RemoveContentFromPlotCubeCSharp.csproj" />
+    <Project Path="Plotting/ScreenObjectCoordTransform/ScreenObjectCoordTransform.csproj" />
+    <Project Path="Plotting/SelectingDataCoordsFromScreen/SelectingDataCoordsFromScreen.csproj" />
+    <Project Path="Plotting/SplinePlotExample/SplinePlotExample.csproj" />
+    <Project Path="Plotting/Spline_path_through_3D_points/Spline_path_through_3D_points.csproj" />
+    <Project Path="Plotting/Titles on Plots/Titles on Plots.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/InteractiveAreaOnTopOfPlots/">
+    <Project Path="Plotting/InteractiveAreaOnTopOfPlots/InteractiveAreasOnTopOfPlots.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/LayeredAreaPlot/">
+    <Project Path="Plotting/LayeredAreaPlot/LayeredAreaPlotExample.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/LinePlotOnSurface/">
+    <Project Path="Plotting/LinePlotOnSurface/LinePlot2dOnSurface.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/ReusePlottingForms/">
+    <Project Path="Plotting/ReusePlottingForms/Reuse_Plotting_Form.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/ReversedYAxis4LinePlots/">
+    <Project Path="Plotting/ReversedYAxis4LinePlots/ReversedYAxisForLinePlots.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/ScalableLargeScatteredDataFitting/">
+    <Project Path="Plotting/ScalableLargeScatteredDataFitting/ScalableScatteredDataFitting.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/StackedAreaPlot/">
+    <Project Path="Plotting/StackedAreaPlot/StackedAreaPlotExample.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/TwoXYLinePlotsAndLegend/">
+    <Project Path="Plotting/TwoXYLinePlotsAndLegend/TwoXY-LinePlotsAndLegend.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/VisualBasic_MiniSurfaceExample/">
+    <Project Path="Plotting/VisualBasic_MiniSurfaceExample/WinFormsApp_VB.vbproj" />
+  </Folder>
+  <Folder Name="/Plotting/VolumePlots/">
+    <Project Path="Plotting/VolumePlots/VolumePlotsProject.csproj" />
+  </Folder>
+  <Folder Name="/Plotting/WPFPlottingExample/" />
+  <Folder Name="/Plotting/WPFPlottingExample/WpfApp1/">
+    <Project Path="Plotting/WPFPlottingExample/WpfApp1/WpfApp_CSharp_NET8.0.csproj" />
+  </Folder>
+  <Folder Name="/TestApps/" />
+  <Folder Name="/TestApps/ILNumerics.Drawing.TestApp/" />
+  <Folder Name="/TestApps/ILNumerics.Drawing.TestApp/src/">
+    <Project Path="TestApps/ILNumerics.Drawing.TestApp/src/ILNumerics.VisualDrawingTestApp.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/SmokeTest/">
+    <Project Path="tests/SmokeTest/SmokeHook/SmokeHook.csproj" />
+    <Project Path="tests/SmokeTest/SmokeRunner/SmokeRunner.csproj" />
+  </Folder>
+  <Folder Name="/Visualization/">
+    <Project Path="Visualization/2DHeatmapOn3DObject/2DHeatmapOn3DObject.csproj" />
+    <Project Path="Visualization/3DCadViewGearExample/3DCadViewGearExample.csproj" />
+    <Project Path="Visualization/3D_DataCubes_Broadcasting/3D_DataCubes_Broadcasting.csproj" />
+    <Project Path="Visualization/BasicLighting/BasicLighting.csproj" />
+    <Project Path="Visualization/BigDataVisualization_ChunkedInteractive/BigDataVisualization_ChunkedInteractive.csproj" />
+    <Project Path="Visualization/ColorbarColoredSphere/ColorbarColoredSphere.csproj" />
+    <Project Path="Visualization/ColorbarWithCustomObjects/ColorbarWithCustomObjects.csproj" />
+    <Project Path="Visualization/ColormappedCircles_inPlotCube/ColormappedCircles_inPlotCube.csproj" />
+    <Project Path="Visualization/ColormappedMatrixChart/ColormappedMatrixChart.csproj" />
+    <Project Path="Visualization/ConnectingTubes/ConnectingTubes.csproj" />
+    <Project Path="Visualization/ConstrainedCameraInteraction/ConstrainedCameraInteraction.csproj" />
+    <Project Path="Visualization/CustomColorMap/CustomColorMap.csproj" />
+    <Project Path="Visualization/CustomDerivedClassAsSceneObject_SupportCopy/CustomDerivedClassAsSceneObject_SupportCopy.csproj" />
+    <Project Path="Visualization/CustomMouseToolForILCamera/CustomMouseToolForILCamera.csproj" />
+    <Project Path="Visualization/CustomMouseWheelHandler/CustomMouseWheelHandler.csproj" />
+    <Project Path="Visualization/CustomRotationCenter/CustomRotationCenter.csproj" />
+    <Project Path="Visualization/CustomRotationTool/CustomRotationTool.csproj" />
+    <Project Path="Visualization/CustomSceneGraphObject_Brick/CustomSceneGraphObject_Brick.csproj" />
+    <Project Path="Visualization/CustomTripod/CustomTripod.csproj" />
+    <Project Path="Visualization/DirectionalZoom/DirectionalZoom.csproj" />
+    <Project Path="Visualization/Dynamic_Surface_Morph/Dynamic_Surface_Morph.csproj" />
+    <Project Path="Visualization/EulerAngles/EulerAngles.csproj" />
+    <Project Path="Visualization/Eventing_SharedScenes/Eventing_SharedScenes.csproj" />
+    <Project Path="Visualization/ExtendedPickingon3DObjects/ExtendedPickingon3DObjects.csproj" />
+    <Project Path="Visualization/FlatShadedColormap/FlatShadedColormap.csproj" />
+    <Project Path="Visualization/ManyCubesColoredIndividually/ManyCubesColoredIndividually.csproj" />
+    <Project Path="Visualization/RadiationPatternVisualizationSphere/RadiationPatternVisualizationSphere.csproj" />
+    <Project Path="Visualization/Saving_scene_as_images/Saving_scene_as_images.csproj" />
+    <Project Path="Visualization/ShowAllOrthographicZoom/ShowAllOrthographicZoom.csproj" />
+    <Project Path="Visualization/SimpleCubeFromTriangles/SimpleCubeFromTriangles.csproj" />
+    <Project Path="Visualization/SpecularLighting/SpecularLighting.csproj" />
+    <Project Path="Visualization/STL_Viewer/STL_Viewer.csproj" />
+    <Project Path="Visualization/TorusAndSurface/TorusAndSurface.csproj" />
+    <Project Path="Visualization/TripodScreen/TripodScreen.csproj" />
+    <Project Path="Visualization/Tripod_Arrow3D_Configuration/Tripod_Arrow3D_Configuration.csproj" />
+    <Project Path="Visualization/UpdatingDynamicSceneSharedBuffers/UpdatingDynamicSceneSharedBuffers.csproj" />
+    <Project Path="Visualization/VoxelViewerFastSurface/VoxelViewerFastSurface.csproj" />
+    <Project Path="Visualization/VoxelViewerScatteredArea/VoxelViewerScatteredArea.csproj" />
+    <Project Path="Visualization/ZoomFactorExample/ZoomFactorExample.csproj" />
+  </Folder>
+  <Folder Name="/Visualization/SmoothSurface/">
+    <Project Path="Visualization/SmoothSurface/SmoothSurfaceExample.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,190 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+
+/// <summary>
+/// .NET startup hook (see DOTNET_STARTUP_HOOKS). Must live in the global namespace and be named StartupHook.
+/// Controlled by environment variables set by the smoke runner:
+///   ILN_SMOKE_OUT    output directory for result files (hook does nothing when unset)
+///   ILN_SMOKE_NAME   base file name for this example's results
+///   ILN_SMOKE_DELAY  milliseconds to let the example run before capturing (default 8000)
+/// </summary>
+internal class StartupHook {
+
+    static string? s_outDir;
+    static string s_name = "example";
+    static int s_failed;
+
+    public static void Initialize() {
+        s_outDir = Environment.GetEnvironmentVariable("ILN_SMOKE_OUT");
+        if (string.IsNullOrEmpty(s_outDir)) return;
+        Directory.CreateDirectory(s_outDir);
+        s_name = Environment.GetEnvironmentVariable("ILN_SMOKE_NAME") ?? s_name;
+        int delay = int.TryParse(Environment.GetEnvironmentVariable("ILN_SMOKE_DELAY"), out var d) ? d : 8000;
+
+        AppDomain.CurrentDomain.UnhandledException += (s, e) => Fail("Unhandled exception", e.ExceptionObject);
+        try {
+            // WinForms would otherwise show its "continue / quit" dialog and keep the process alive.
+            System.Windows.Forms.Application.SetUnhandledExceptionMode(System.Windows.Forms.UnhandledExceptionMode.ThrowException);
+        } catch (Exception exc) {
+            Log("could not set WinForms exception mode: " + exc.Message);
+        }
+
+        var t = new Thread(() => CaptureLoop(delay)) { IsBackground = true, Name = "ILN smoke capture" };
+        t.Start();
+    }
+
+    static void CaptureLoop(int delay) {
+        Thread.Sleep(delay);
+        // give slow examples a few more seconds to show their first window
+        for (int i = 0; i < 10; i++) {
+            try {
+                if (TryCaptureWinForms() || TryCaptureWpf()) {
+                    Environment.Exit(Volatile.Read(ref s_failed) == 0 ? 0 : 3);
+                }
+            } catch (Exception exc) {
+                Fail("Capture failed", exc);
+                Environment.Exit(3);
+            }
+            Thread.Sleep(1000);
+        }
+        // No window: a console example. Let it finish on its own; the runner enforces a timeout.
+        Log("no window found");
+    }
+
+    #region WinForms
+    static bool TryCaptureWinForms() {
+        var forms = System.Windows.Forms.Application.OpenForms;
+        if (forms.Count == 0) return false;
+        var form = forms[0]!;
+        var result = new Dictionary<string, object?> { ["ui"] = "WinForms", ["window"] = form.GetType().FullName, ["title"] = null };
+        form.Invoke(() => {
+            result["title"] = form.Text;
+            // modal dialogs (MessageBox etc.) on top of the main form are a hint that something went wrong
+            result["openForms"] = forms.Cast<System.Windows.Forms.Form>().Select(f => f.GetType().FullName + ": " + f.Text).ToArray();
+            try {
+                form.WindowState = System.Windows.Forms.FormWindowState.Normal;
+                form.TopMost = true; form.Activate(); form.Refresh();
+                System.Windows.Forms.Application.DoEvents();
+                SaveScreen(form.Bounds, Path.Combine(s_outDir!, s_name + ".screen.png"));
+            } catch (Exception exc) { result["screenError"] = exc.Message; }
+
+            var panels = FindPanels(form).ToList();
+            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
+            RenderPanels(panels, result);
+        });
+        WriteResult(result);
+        return true;
+    }
+
+    static IEnumerable<object> FindPanels(System.Windows.Forms.Control c) {
+        foreach (System.Windows.Forms.Control child in c.Controls) {
+            if (IsIlnPanel(child)) yield return child;
+            foreach (var p in FindPanels(child)) yield return p;
+        }
+    }
+    #endregion
+
+    #region WPF
+    static bool TryCaptureWpf() {
+        System.Windows.Application? app;
+        try { app = System.Windows.Application.Current; } catch { return false; }
+        if (app == null) return false;
+        var result = new Dictionary<string, object?> { ["ui"] = "WPF" };
+        bool found = false;
+        app.Dispatcher.Invoke(() => {
+            var win = app.MainWindow;
+            if (win == null || !win.IsLoaded) return;
+            found = true;
+            result["window"] = win.GetType().FullName; result["title"] = win.Title;
+            try {
+                win.Topmost = true; win.Activate();
+                var src = System.Windows.PresentationSource.FromVisual(win);
+                double sx = src?.CompositionTarget?.TransformToDevice.M11 ?? 1, sy = src?.CompositionTarget?.TransformToDevice.M22 ?? 1;
+                var rect = new Rectangle((int)(win.Left * sx), (int)(win.Top * sy), (int)(win.ActualWidth * sx), (int)(win.ActualHeight * sy));
+                SaveScreen(rect, Path.Combine(s_outDir!, s_name + ".screen.png"));
+            } catch (Exception exc) { result["screenError"] = exc.Message; }
+
+            var panels = new List<object>();
+            CollectWpf(win, panels);
+            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
+            RenderPanels(panels, result);
+        });
+        if (found) WriteResult(result);
+        return found;
+    }
+
+    static void CollectWpf(object node, List<object> panels) {
+        if (IsIlnPanel(node)) { panels.Add(node); return; }
+        if (node is System.Windows.Forms.Integration.WindowsFormsHost host && host.Child != null) {
+            if (IsIlnPanel(host.Child)) panels.Add(host.Child); else panels.AddRange(FindPanels(host.Child));
+            return;
+        }
+        if (node is System.Windows.DependencyObject dobj) {
+            foreach (var child in System.Windows.LogicalTreeHelper.GetChildren(dobj)) CollectWpf(child, panels);
+        }
+    }
+    #endregion
+
+    #region ILNumerics rendering
+    static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
+
+    static ILNumerics.Drawing.Scene CurrentScene(object panel) => panel switch {
+        ILNumerics.Drawing.Panel p => p.GetCurrentScene(),
+        ILNumerics.Drawing.Controls.WPF.Panel p => p.GetCurrentScene(),
+        _ => throw new ArgumentException("not an ILNumerics panel")
+    };
+
+    static string? DriverName(object panel) => panel switch {
+        ILNumerics.Drawing.Panel p => p.Driver.ToString(),
+        ILNumerics.Drawing.Controls.WPF.Panel p => p.Driver.ToString(),
+        _ => null
+    };
+
+    /// <summary>Renders each panel's current scene offscreen with the software (GDI) renderer. Works without a GPU.</summary>
+    static void RenderPanels(List<object> panels, Dictionary<string, object?> result) {
+        var renders = new List<object>();
+        for (int i = 0; i < panels.Count; i++) {
+            var file = s_name + (i == 0 ? "" : "." + i) + ".render.png";
+            try {
+                result["driver" + (i == 0 ? "" : "." + i)] = DriverName(panels[i]);
+                var scene = CurrentScene(panels[i]);
+                using var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White);
+                drv.Render();
+                drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
+                renders.Add(new { file, ok = true });
+            } catch (Exception exc) {
+                renders.Add(new { file, ok = false, error = exc.ToString() });
+                Interlocked.Exchange(ref s_failed, 1);
+            }
+        }
+        result["renders"] = renders;
+    }
+    #endregion
+
+    #region helpers
+    static void SaveScreen(Rectangle r, string path) {
+        if (r.Width <= 0 || r.Height <= 0) return;
+        using var bmp = new Bitmap(r.Width, r.Height);
+        using (var g = Graphics.FromImage(bmp)) g.CopyFromScreen(r.Location, Point.Empty, r.Size);
+        bmp.Save(path, ImageFormat.Png);
+    }
+
+    static void WriteResult(Dictionary<string, object?> result) {
+        File.WriteAllText(Path.Combine(s_outDir!, s_name + ".result.json"),
+            JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    static void Fail(string what, object? exc) {
+        Interlocked.Exchange(ref s_failed, 1);
+        try { File.AppendAllText(Path.Combine(s_outDir!, s_name + ".error.txt"), $"{what}:{Environment.NewLine}{exc}{Environment.NewLine}"); } catch { }
+    }
+
+    static void Log(string msg) => Console.Error.WriteLine("[iln-smoke] " + msg);
+    #endregion
+}

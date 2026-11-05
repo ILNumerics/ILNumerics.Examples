@@ -35,7 +35,7 @@ namespace InteractiveWebApp.Pages
             gdi.Configure();
             gdi.Render();
             MemoryStream ms = new MemoryStream();
-            gdi.BackBuffer.Bitmap.Save(ms, ImageFormat.Png);
+            gdi.BackBuffer.SaveBitmap(ms);
 
             return File(ms.GetBuffer(), "image/png");
         }

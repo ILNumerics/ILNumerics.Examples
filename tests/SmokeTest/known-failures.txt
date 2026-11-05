@@ -1,0 +1,2 @@
+# Examples that are known to fail the smoke test. They are still run and reported,
+# but do not fail the CI build. One example folder per line, e.g.: Plotting/BarPlotExample

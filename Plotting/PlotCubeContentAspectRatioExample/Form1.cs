@@ -26,7 +26,8 @@ namespace WindowsFormsApp1 {
         /// the overall aspect ratio of the scene, the scaling of labels and axis ticks etc... (basically, this 
         /// is what PlotCube normally relieves you from having to deal with).
         /// </summary>
-        public float Padding { get; set; } = 0.1f; 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new float Padding { get; set; } = 0.1f; 
 
         PlotCube PlotCube {
             get { return m_panel?.Scene.First<PlotCube>(); }

@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <RootNamespace>FFT_HanningWindow_VB_NET50</RootNamespace>
     <StartupObject>Sub Main</StartupObject>
     <UseWindowsForms>true</UseWindowsForms>
     <MyType>WindowsForms</MyType>
+    <!-- WithEvents designer fields trigger the WinForms serialization analyzer (WFO1000) since .NET 9. -->
+    <NoWarn>$(NoWarn);WFO1000</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,8 +33,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ILNumerics.Computing" Version="7.3.79" />
-    <PackageReference Include="ILNumerics.Drawing.Platforms" Version="7.3.79" />
+    <PackageReference Include="ILNumerics.Computing" Version="*" />
+    <PackageReference Include="ILNumerics.Drawing.Platforms" Version="*" />
   </ItemGroup>
 
 </Project>
