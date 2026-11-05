@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- ILNumerics Accelerator generates invalid namespaces for assembly names starting with a digit. -->
+    <AssemblyName>Example_3DBarGraph</AssemblyName>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
