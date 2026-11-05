@@ -8,8 +8,7 @@ param(
     [string]$Tfm = 'net10.0'
 )
 $errors = @()
-# Legacy .NET Framework variant, kept until it is removed or converted.
-$skip = @('STL_Viewer_NET_FW.csproj')
+$skip = @()
 
 Get-ChildItem -Path $Root -Recurse -Include *.csproj, *.vbproj |
     Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' -and $skip -notcontains $_.Name } |

@@ -141,6 +141,7 @@
     <Project Path="Visualization/SimpleCubeFromTriangles/SimpleCubeFromTriangles.csproj" />
     <Project Path="Visualization/SpecularLighting/SpecularLighting.csproj" />
     <Project Path="Visualization/STL_Viewer/STL_Viewer.csproj" />
+    <Project Path="Visualization/STL_Viewer_NET_FW/STL_Viewer_NET_FW.csproj" />
     <Project Path="Visualization/TorusAndSurface/TorusAndSurface.csproj" />
     <Project Path="Visualization/TripodScreen/TripodScreen.csproj" />
     <Project Path="Visualization/Tripod_Arrow3D_Configuration/Tripod_Arrow3D_Configuration.csproj" />
