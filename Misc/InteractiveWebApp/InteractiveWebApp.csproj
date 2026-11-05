@@ -4,8 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- The Accelerator fails to run the Razor source generator on .NET 10 (Microsoft.Extensions.ObjectPool load error). -->
-    <ILNAcceleratorEnabled>false</ILNAcceleratorEnabled>
   </PropertyGroup>
 
   <ItemGroup>
