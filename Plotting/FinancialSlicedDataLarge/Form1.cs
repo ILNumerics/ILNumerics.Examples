@@ -198,7 +198,7 @@ namespace FinancialSlicedDataLarge {
                 // this renders the scene to the backbuffer of the gdi renderer
                 gdi.Render();
                 // save the backbuffer with the rendered scene to a file.
-                gdi.BackBuffer.Bitmap.Save("export.png");
+                gdi.BackBuffer.SaveBitmap("export.png");
                 // ok - let the user know that it went fine.
                 MessageBox.Show("Exported scene to: " + Path.Combine(Environment.CurrentDirectory, "export.png"));
             }

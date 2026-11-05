@@ -23,24 +23,40 @@ namespace VoxelViewerScatteredArea {
         private Sphere[] m_dots = new Sphere[4];
         private float[] m_dotPositions = new float[4];
         private bool[] m_dotsSelectd = new bool[4];
-        private int res = 256;
+        private int res = 128;
 
         public Form1() {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// Loads the 256 x 256 x 256 skull volume, keeping only every <paramref name="step"/>-th voxel 
+        /// in each dimension. The free ILNumerics Starter Edition limits the size of arrays, so we 
+        /// work on a reduced volume (128 x 128 x 128 for step = 2). With a Professional or Enterprise 
+        /// license you may use step = 1 to get the full resolution. 
+        /// </summary>
+        private static byte[] LoadSkull(int step, out int n) {
+            const int full = 256;
+            byte[] raw = Resource1.skull;
+            n = full / step;
+            var ret = new byte[n * n * n];
+            int k = 0;
+            for (int z = 0; z < n; z++)
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                        ret[k++] = raw[(x * step) + full * ((y * step) + full * (z * step))];
+            return ret;
         }
 
         private void ilPanel1_Load(object sender, EventArgs e) {
 
             // create example dataset
             // Reference: http://www.volvis.org/ 
-            m_nrSlices = 256;
-
-            // read the whole file at once
-            using (var stream = new MemoryStream(Resource1.skull)) {
-                m_V.a = tosingle(loadBinary<byte>(stream, res, res, res * m_nrSlices));
-            }
-            m_V.a = reshape<float>(m_V, res, res, m_nrSlices);
-            // m_V holds all image slices / voxels in a 3D array now: 256 x 256 x 256
+            // read the whole file at once (every 2nd voxel, see LoadSkull)
+            Array<byte> data = LoadSkull(2, out res);
+            m_nrSlices = res;
+            m_V.a = reshape<float>(tosingle(data), res, res, m_nrSlices);
+            // m_V holds all image slices / voxels in a 3D array now: 128 x 128 x 128
 
             // setup the scene
             // Visualize some slices as fast surface 

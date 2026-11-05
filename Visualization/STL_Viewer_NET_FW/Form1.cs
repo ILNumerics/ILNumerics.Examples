@@ -24,11 +24,14 @@ namespace STL_Viewer_NET_FW {
 
         public Form1() {
             InitializeComponent();
-            this.Menu = new MainMenu();
-            MenuItem item = new MenuItem("File");
-            this.Menu.MenuItems.Add(item);
-            item.MenuItems.Add("Open", new EventHandler(openMenuItem_Click));
-            item.MenuItems.Add("Exit", new EventHandler(exitMenuItem_Click));
+            // MainMenu is not available on .NET Core / .NET 5+; MenuStrip replaces it.
+            var menu = new MenuStrip() { Name = "menuStrip1" };
+            var item = new ToolStripMenuItem("File");
+            item.DropDownItems.Add("Open", null, new EventHandler(openMenuItem_Click));
+            item.DropDownItems.Add("Exit", null, new EventHandler(exitMenuItem_Click));
+            menu.Items.Add(item);
+            this.Controls.Add(menu);
+            this.MainMenuStrip = menu;
         }
         protected override void OnLoad(EventArgs e) {
             base.OnLoad(e);

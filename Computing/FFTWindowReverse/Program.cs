@@ -26,7 +26,7 @@ namespace ConsoleApplication1 {
             // A should contain a vibration now...
 
             Console.WriteLine($"{A}");
-            Console.ReadLine(); 
+            if (!Console.IsInputRedirected) Console.ReadLine();
         }
     }
 }

@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Workaround: with the Accelerator, the first construction of a segment from many TPL threads
+         at once races in ILNumerics.Licensing.RuntimeLicenseProvider.GetLicense (a non-concurrent
+         Dictionary). Re-enable once that is fixed. -->
+    <ILNAcceleratorEnabled>false</ILNAcceleratorEnabled>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,0 +1,75 @@
+name: Build and test examples
+
+# Runs on every push and pull request, and nightly so that a new ILNumerics release on nuget.org
+# is picked up and tested without any change to this repository (all ILNumerics references float: Version="*").
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check project conventions
+        shell: pwsh
+        run: ./tests/check-projects.ps1
+
+      # No package cache and --force-evaluate: floating versions always resolve to the newest ILNumerics on nuget.org.
+      - name: Restore (newest ILNumerics)
+        run: dotnet restore ILNumerics.Examples.slnx --force-evaluate
+
+      - name: Build all examples
+        run: dotnet build ILNumerics.Examples.slnx -c Release --no-restore
+
+      # The hosted runners have no GPU. Mesa's llvmpipe provides a full software OpenGL, so the examples take the
+      # same OpenGL path as on a user's machine instead of ILNumerics' GDI fallback.
+      - name: Get Mesa software OpenGL
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # pinned: a release whose x64 folder ships the WGL driver (opengl32.dll + libgallium_wgl.dll)
+          gh release download 24.3.4 --repo pal1000/mesa-dist-win --pattern "mesa3d-*-release-msvc.7z" --output mesa.7z
+          7z x mesa.7z -omesa -y | Out-Null
+          $gl = Get-ChildItem mesa -Recurse -Filter opengl32.dll | Where-Object { $_.DirectoryName -match 'x64' } | Select-Object -First 1
+          if (-not $gl) { Get-ChildItem mesa -Recurse | Select-Object FullName; throw "opengl32.dll not found in the Mesa archive" }
+          New-Item -ItemType Directory -Force mesa-x64 | Out-Null
+          # only the WGL/llvmpipe parts; they get copied next to every example
+          foreach ($n in 'opengl32.dll', 'libgallium_wgl.dll', 'libglapi.dll') {
+            $f = Join-Path $gl.DirectoryName $n
+            if (Test-Path $f) { Copy-Item $f mesa-x64/ }
+          }
+          Get-ChildItem mesa-x64 | Select-Object Name, Length | Format-Table
+
+      # Starts every example without a license key (free Starter Edition), captures a screenshot and an
+      # offscreen software rendering of each scene, and fails on crashes, hangs, errors and blank renders.
+      - name: Smoke and render test
+        run: dotnet run --project tests/SmokeTest/SmokeRunner -c Release --no-build -- --root . --out smoke-results --hook tests/SmokeTest/SmokeHook/bin/Release/net10.0-windows/SmokeHook.dll --opengl mesa-x64
+
+      - name: Upload screenshots and renders
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-results
+          path: smoke-results
+          if-no-files-found: ignore

@@ -60,7 +60,7 @@ namespace HDF5WriteDataset {
                  *  temperature     - /data -[5,5]
                  */
 
-                Console.ReadKey();
+                if (!Console.IsInputRedirected) Console.ReadKey();
             }
         }
     }

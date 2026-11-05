@@ -32,7 +32,7 @@ namespace Saving_scene_as_images {
             var drv = new GDIDriver(1200, 800, sceneR);
             drv.Render();
             string filename = "shown.png"; 
-            drv.BackBuffer.Bitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+            drv.BackBuffer.SaveBitmap(filename);
 
             MessageBox.Show($"Image saved to: {System.IO.Path.Combine(Environment.CurrentDirectory, filename)}"); 
 
@@ -61,7 +61,7 @@ namespace Saving_scene_as_images {
             var drv = new GDIDriver(1200, 800, scene);
             drv.Render();
             string filename = "not_shown.png";
-            drv.BackBuffer.Bitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+            drv.BackBuffer.SaveBitmap(filename);
 
             MessageBox.Show($"Image saved to: {System.IO.Path.Combine(Environment.CurrentDirectory, filename)}");
 

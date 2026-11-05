@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWinForms>true</UseWinForms>
+    <LangVersion>12</LangVersion>
+    <StartupObject>ILNumerics.VisualDrawingTestApp.Windows.App</StartupObject>
+    <Configurations>Debug;Release;ProjectReferences_DEBUG;ProjectReferences_Release;Accelerator_Debug_FastBuild;Packages_Debug;Packages_Release</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(TargetFramework)=='net461'">
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$(Configuration.StartsWith('ProjectReferences'))">
+    <PackageReference Include="ILNumerics.Computing" Version="*" />
+    <PackageReference Include="ILNumerics.Drawing.Platforms" Version="*" />
+    <PackageReference Include="ILNumerics.Toolboxes.Drawing2" Version="*" />
+    <PackageReference Include="ILNumerics.Toolboxes.Interpolation" Version="*" />
+    <PackageReference Include="ILNumerics.Toolboxes.Optimization" Version="*" />
+    <PackageReference Include="ILNumerics.Toolboxes.Statistics" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(Configuration.StartsWith('ProjectReferences'))">
+    <ProjectReference Include="..\..\..\ILNumerics.Drawing\src\ILNumerics.Drawing.csproj" />
+    <ProjectReference Include="..\..\..\ILNumerics.Core\src\ILNumerics.Core.csproj" />
+    <ProjectReference Include="..\..\src\ILNumerics.Drawing.Platforms.csproj" />
+    <ProjectReference Include="..\..\..\ILNumerics.Toolboxes\ILNumerics.Toolboxes.Drawing2\src\ILNumerics.Toolboxes.Drawing2.csproj" />
+    <ProjectReference Include="..\..\..\ILNumerics.Toolboxes\ILNumerics.Toolboxes.Interpolation\src\ILNumerics.Toolboxes.Interpolation.csproj" />
+    <ProjectReference Include="..\..\..\ILNumerics.Toolboxes\ILNumerics.Toolboxes.Statistics\src\ILNumerics.Toolboxes.Statistics.csproj" />
+  </ItemGroup>
+
+</Project>

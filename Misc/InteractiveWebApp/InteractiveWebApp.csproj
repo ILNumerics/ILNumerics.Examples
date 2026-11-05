@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- The Accelerator fails to run the Razor source generator on .NET 10 (Microsoft.Extensions.ObjectPool load error). -->
+    <ILNAcceleratorEnabled>false</ILNAcceleratorEnabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,13 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Version6\ILNumerics.Computing\src\ILNumerics.Computing.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.Core.Platforms\src\ILNumerics.Core.Platforms.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.Core.Runtime\src\ILNumerics.Core.Runtime.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.Core\src\ILNumerics.Core.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.Drawing\src\ILNumerics.Drawing.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.F2NET.LAPACK\src\ILNumerics.F2NET.LAPACK.csproj" />
-    <ProjectReference Include="..\..\Version6\ILNumerics.numpy\src\ILNumerics.numpy.csproj" />
+    <PackageReference Include="ILNumerics.Computing" Version="*" />
+    <PackageReference Include="ILNumerics.Drawing" Version="*" />
+    <PackageReference Include="ILNumerics.numpy" Version="*" />
   </ItemGroup>
 
 </Project>

@@ -14,8 +14,7 @@ using ILNumerics.Core.Logging;
 namespace MyBenchmarks { 
       
     //ILN(enabled=false)
-    [SimpleJob(RunStrategy.Monitoring, RuntimeMoniker.Net461, launchCount: 1, warmupCount: 1, iterationCount: 3, baseline: true)]
-    [SimpleJob(RunStrategy.Monitoring, RuntimeMoniker.Net60, launchCount: 1, warmupCount: 1, iterationCount: 3)]
+    [SimpleJob(RunStrategy.Monitoring, RuntimeMoniker.Net10_0, launchCount: 1, warmupCount: 1, iterationCount: 3, baseline: true)]
     [MinColumn]
     [HtmlExporter]
     [PlainExporter]

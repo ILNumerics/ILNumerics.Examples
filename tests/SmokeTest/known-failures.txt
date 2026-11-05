@@ -1,0 +1,9 @@
+# Examples that are known to fail the smoke test. They are still run and reported,
+# but do not fail the CI build. One example folder per line, e.g.: Plotting/BarPlotExample
+# ILNumerics.IO.HDF5: H5Dataset.Set() calls H5Dset_extent even when the size is unchanged, which HDF5 rejects for
+# datasets with compact storage (like 'carr' in test_hdf5.mat, written by Matlab).
+Computing/LoadingMatFiles
+# Needs a GPU: it shows WinForms and WPF OpenGL panels side by side. Without hardware OpenGL the WinForms panel's
+# GDI fallback throws (Dispose() during CreateHandle()), and Mesa can't help, since the WPF OpenGL control needs
+# NV_DX_interop. Both are ILNumerics.Drawing issues.
+TestApps/ILNumerics.Drawing.TestApp/src
