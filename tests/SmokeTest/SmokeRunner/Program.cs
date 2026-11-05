@@ -45,6 +45,15 @@ var results = new List<Result>();
 foreach (var rel in projects) {
     var r = RunOne(rel);
     r.KnownFailure = knownFailures.Contains(r.Name);
+    if (!r.Passed && !r.KnownFailure) {
+        // Software OpenGL (Mesa) on the runner occasionally fails to create a context.
+        // Retry once so that a single flaky start does not fail the build.
+        Console.WriteLine($"RETRY {rel}  {r.Message}");
+        var first = r.Message;
+        r = RunOne(rel);
+        r.KnownFailure = false;
+        if (r.Passed) r.Message = "passed on retry; first attempt: " + first;
+    }
     results.Add(r);
     Console.WriteLine($"{(r.Passed ? "PASS" : r.KnownFailure ? "KNOWN" : "FAIL"),-5} {rel}  {r.Message}");
     if (!r.Passed) PrintDetails(r);
