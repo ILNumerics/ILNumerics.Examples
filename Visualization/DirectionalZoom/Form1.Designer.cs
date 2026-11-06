@@ -24,7 +24,7 @@
         /// </summary>
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.panel2 = new ILNumerics.Drawing.Panel();
+            this.panel2 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.SuspendLayout();
             // 
             // panel2
@@ -56,6 +56,6 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel panel2;
+        private ILNumerics.Drawing.Controls.WinForms.Panel panel2;
     }
 }

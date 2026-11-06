@@ -35,7 +35,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
             this.SuspendLayout();
@@ -193,7 +193,7 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.TrackBar trackBar2;

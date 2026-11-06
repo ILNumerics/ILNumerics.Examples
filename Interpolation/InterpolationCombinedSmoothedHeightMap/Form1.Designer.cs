@@ -26,7 +26,7 @@ namespace WindowsFormsApplication1 {
         /// </summary>
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.SuspendLayout();
             // 
             // ilPanel1
@@ -58,7 +58,7 @@ namespace WindowsFormsApplication1 {
 
         #endregion
 
-        private Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
     }
 }
 

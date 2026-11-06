@@ -18,13 +18,13 @@ namespace ColormappedMatrixChart
         public Plotting_Form1()
         {
             InitializeComponent();
-            ilPanel1 = new ILNumerics.Drawing.Panel();
+            ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             ilPanel1.Load += new EventHandler(ilPanel1_Load);
             Controls.Add(ilPanel1);
             ilPanel1.Dock = DockStyle.Fill; 
         }
 
-        private ILNumerics.Drawing.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
 
         // Initial plot setup, modify this as needed
         private void ilPanel1_Load(object sender, EventArgs e)

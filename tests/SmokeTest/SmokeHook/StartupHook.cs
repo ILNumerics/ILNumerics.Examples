@@ -34,6 +34,15 @@ internal class StartupHook {
         AppDomain.CurrentDomain.FirstChanceException += (s, e) => {
             try {
                 var src = e.Exception.TargetSite?.DeclaringType?.FullName ?? "";
+                if (s_inOffscreenRender) {
+                    // During the offscreen render record exceptions from anywhere: e.g. the Starter plan's data size
+                    // limit (thrown in ILNumerics.Core) silently leaves parts of the render empty.
+                    // The lookup for embedded license resources is expected to fail in the examples: skip it.
+                    if (src == "ILNumerics.Licensing.LicenseManager") return;
+                    var msg = $"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}";
+                    lock (s_renderExceptions) if (s_renderExceptions.Count < 8 && !s_renderExceptions.Contains(msg)) s_renderExceptions.Add(msg);
+                    return;
+                }
                 if (!(src.StartsWith("ILNumerics.Drawing") || src.StartsWith("OpenTK"))) return;
                 lock (s_firstChance) if (s_firstChance.Count < 8) s_firstChance.Add($"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}");
             } catch { }
@@ -67,6 +76,8 @@ internal class StartupHook {
 
     static readonly List<string> s_dialogs = new();
     static readonly List<string> s_firstChance = new();
+    static readonly List<string> s_renderExceptions = new();
+    static volatile bool s_inOffscreenRender;
 
     static void CaptureLoop(int delay) {
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -132,15 +143,17 @@ internal class StartupHook {
             result["title"] = form.Text;
             // modal dialogs (MessageBox etc.) on top of the main form are a hint that something went wrong
             result["openForms"] = forms.Cast<System.Windows.Forms.Form>().Select(f => f.GetType().FullName + ": " + f.Text).ToArray();
+            var panels = FindPanels(form).ToList();
+            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
             try {
                 form.WindowState = System.Windows.Forms.FormWindowState.Normal;
-                form.TopMost = true; form.Activate(); form.Refresh();
+                form.TopMost = true; form.Activate();
+                foreach (System.Windows.Forms.Control c in panels) NudgeSize(c);
+                form.Refresh();
                 System.Windows.Forms.Application.DoEvents();
                 SaveScreen(form.Bounds, Path.Combine(s_outDir!, s_name + ".screen.png"));
             } catch (Exception exc) { result["screenError"] = exc.Message; }
 
-            var panels = FindPanels(form).ToList();
-            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
             for (int i = 0; i < panels.Count; i++) {
                 var c = (System.Windows.Forms.Control)panels[i];
                 try { SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png")); }
@@ -150,6 +163,19 @@ internal class StartupHook {
         });
         WriteResult(result);
         return true;
+    }
+
+    // Software OpenGL (Mesa llvmpipe, as used on CI) keeps the default framebuffer at the size the GL window had
+    // when the context was created. Panels that are resized right after creation (AutoScale, docking) then show
+    // only the lower left part of the scene, above a black bar. One resize afterwards makes the framebuffer
+    // follow the panel. Hardware drivers are not affected; the resize is harmless there.
+    static void NudgeSize(System.Windows.Forms.Control c) {
+        if (c.Width < 2 || c.Height < 2) return;
+        var size = c.Size;
+        c.Size = new Size(size.Width - 1, size.Height - 1); c.Refresh(); System.Windows.Forms.Application.DoEvents();
+        c.Size = size; c.Refresh(); System.Windows.Forms.Application.DoEvents();
+        Thread.Sleep(300);
+        c.Refresh(); System.Windows.Forms.Application.DoEvents();
     }
 
     static IEnumerable<object> FindPanels(System.Windows.Forms.Control c) {
@@ -215,11 +241,11 @@ internal class StartupHook {
     #endregion
 
     #region ILNumerics rendering
-    static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
+    static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Controls.WinForms.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
 
     // Configure() first: it synchronizes changes the example made to panel.Scene into the scene the panel renders.
     static ILNumerics.Drawing.Scene CurrentScene(object panel) => panel switch {
-        ILNumerics.Drawing.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
+        ILNumerics.Drawing.Controls.WinForms.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
         ILNumerics.Drawing.Controls.WPF.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
         _ => throw new ArgumentException("not an ILNumerics panel")
     };
@@ -230,13 +256,18 @@ internal class StartupHook {
     }
 
     static string? DriverName(object panel) => panel switch {
-        ILNumerics.Drawing.Panel p => p.Driver.ToString(),
-        ILNumerics.Drawing.Controls.WPF.Panel p => p.Driver.ToString(),
+        ILNumerics.Drawing.Controls.WinForms.Panel p => p.RendererType.ToString(),
+        ILNumerics.Drawing.Controls.WPF.Panel p => p.RendererType.ToString(),
         _ => null
     };
 
     /// <summary>Renders each panel's current scene offscreen with the software (GDI) renderer. Works without a GPU.</summary>
     static void RenderPanels(List<object> panels, Dictionary<string, object?> result) {
+        s_inOffscreenRender = true;
+        try { RenderPanelsCore(panels, result); } finally { s_inOffscreenRender = false; }
+    }
+
+    static void RenderPanelsCore(List<object> panels, Dictionary<string, object?> result) {
         var renders = new List<object>();
         for (int i = 0; i < panels.Count; i++) {
             var file = s_name + (i == 0 ? "" : "." + i) + ".render.png";
@@ -245,9 +276,10 @@ internal class StartupHook {
                 var scene = CurrentScene(panels[i]);
                 scene.Configure();
                 result["drawables" + (i == 0 ? "" : "." + i)] = scene.Find<ILNumerics.Drawing.Drawable>().Count();
-                using var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White);
-                drv.Render();
-                drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
+                using (var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White)) {
+                    drv.Render();
+                    drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
+                }
                 renders.Add(new { file, ok = true });
             } catch (Exception exc) {
                 renders.Add(new { file, ok = false, error = exc.ToString() });
@@ -271,6 +303,7 @@ internal class StartupHook {
     static void WriteResult(Dictionary<string, object?> result) {
         lock (s_dialogs) if (s_dialogs.Count > 0) result["dialogs"] = s_dialogs.ToArray();
         lock (s_firstChance) if (s_firstChance.Count > 0) result["exceptions"] = s_firstChance.ToArray();
+        lock (s_renderExceptions) if (s_renderExceptions.Count > 0) result["renderExceptions"] = s_renderExceptions.ToArray();
         File.WriteAllText(Path.Combine(s_outDir!, s_name + ".result.json"),
             JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
     }

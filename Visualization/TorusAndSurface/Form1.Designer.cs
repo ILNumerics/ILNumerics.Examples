@@ -25,9 +25,9 @@
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
-            this.ilPanel2 = new ILNumerics.Drawing.Panel();
-            this.ilPanel3 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
+            this.ilPanel2 = new ILNumerics.Drawing.Controls.WinForms.Panel();
+            this.ilPanel3 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -521,9 +521,9 @@
         #endregion
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private ILNumerics.Drawing.Panel ilPanel1;
-        private ILNumerics.Drawing.Panel ilPanel2;
-        private ILNumerics.Drawing.Panel ilPanel3;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel2;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel3;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.GroupBox groupBox1;

@@ -8,7 +8,7 @@ Imports System.Drawing
 Public Class Form1
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
-        Me.IlPanel1 = New ILNumerics.Drawing.Panel()
+        Me.IlPanel1 = New ILNumerics.Drawing.Controls.WinForms.Panel()
         Me.IlPanel1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.IlPanel1.RendererType = ILNumerics.Drawing.RendererTypes.OpenGL
         Me.Controls.Add(Me.IlPanel1)
@@ -16,7 +16,7 @@ Public Class Form1
         Me.Text = $"FFT Hanning Windows Example (VB, NET50)"
     End Sub
 
-    Friend WithEvents IlPanel1 As ILNumerics.Drawing.Panel
+    Friend WithEvents IlPanel1 As ILNumerics.Drawing.Controls.WinForms.Panel
 
     Private Sub IlPanel1_Load(sender As Object, e As EventArgs) Handles IlPanel1.Load
         IlPanel1.Scene.Screen.First(Of Label)().Visible = False ' this should be the default!

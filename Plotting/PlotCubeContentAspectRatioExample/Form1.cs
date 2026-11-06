@@ -16,7 +16,7 @@ using static ILNumerics.Globals;
 namespace WindowsFormsApp1 {
     public partial class Form1 : Form {
 
-        ILNumerics.Drawing.Panel m_panel;
+        ILNumerics.Drawing.Controls.WinForms.Panel m_panel;
         bool m_isHorizontal = true;
         /// <summary>
         /// Now, that the plot cube is not controlling its render size automatically anymore, we 
@@ -34,7 +34,7 @@ namespace WindowsFormsApp1 {
         }
         public Form1() {
             InitializeComponent();
-            m_panel = new ILNumerics.Drawing.Panel();
+            m_panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             m_panel.Load += M_panel_Load;
             m_panel.Dock = DockStyle.Fill;
             Controls.Add(m_panel);
