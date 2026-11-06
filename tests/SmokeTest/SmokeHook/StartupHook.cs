@@ -156,6 +156,15 @@ internal class StartupHook {
                 result["panelGeometry" + Suffix(i)] = DescribeWindows(c);
                 try { SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png")); }
                 catch (Exception exc) { result["panelScreenError"] = exc.Message; }
+                // Diagnostics: resize the panel once and capture again. Shows whether a clipped OpenGL screenshot
+                // is caused by a stale default framebuffer size.
+                try {
+                    var size = c.Size;
+                    c.Size = new Size(size.Width - 1, size.Height - 1); c.Refresh(); System.Windows.Forms.Application.DoEvents();
+                    c.Size = size; c.Refresh(); System.Windows.Forms.Application.DoEvents();
+                    Thread.Sleep(500); c.Refresh(); System.Windows.Forms.Application.DoEvents();
+                    SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel-resized.png"));
+                } catch (Exception exc) { result["panelResizeError"] = exc.Message; }
             }
             RenderPanels(panels, result);
         });
