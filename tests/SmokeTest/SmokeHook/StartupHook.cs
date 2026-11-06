@@ -34,6 +34,11 @@ internal class StartupHook {
         AppDomain.CurrentDomain.FirstChanceException += (s, e) => {
             try {
                 var src = e.Exception.TargetSite?.DeclaringType?.FullName ?? "";
+                if (s_inOffscreenRender) {
+                    // during the offscreen render: record everything, the cause may be outside ILNumerics.Drawing
+                    lock (s_renderExceptions) if (s_renderExceptions.Count < 8) s_renderExceptions.Add($"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}");
+                    return;
+                }
                 if (!(src.StartsWith("ILNumerics.Drawing") || src.StartsWith("OpenTK"))) return;
                 lock (s_firstChance) if (s_firstChance.Count < 8) s_firstChance.Add($"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}");
             } catch { }
@@ -67,6 +72,8 @@ internal class StartupHook {
 
     static readonly List<string> s_dialogs = new();
     static readonly List<string> s_firstChance = new();
+    static readonly List<string> s_renderExceptions = new();
+    static volatile bool s_inOffscreenRender;
 
     static void CaptureLoop(int delay) {
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -265,6 +272,11 @@ internal class StartupHook {
 
     /// <summary>Renders each panel's current scene offscreen with the software (GDI) renderer. Works without a GPU.</summary>
     static void RenderPanels(List<object> panels, Dictionary<string, object?> result) {
+        s_inOffscreenRender = true;
+        try { RenderPanelsCore(panels, result); } finally { s_inOffscreenRender = false; }
+    }
+
+    static void RenderPanelsCore(List<object> panels, Dictionary<string, object?> result) {
         var renders = new List<object>();
         for (int i = 0; i < panels.Count; i++) {
             var file = s_name + (i == 0 ? "" : "." + i) + ".render.png";
@@ -307,6 +319,7 @@ internal class StartupHook {
     static void WriteResult(Dictionary<string, object?> result) {
         lock (s_dialogs) if (s_dialogs.Count > 0) result["dialogs"] = s_dialogs.ToArray();
         lock (s_firstChance) if (s_firstChance.Count > 0) result["exceptions"] = s_firstChance.ToArray();
+        lock (s_renderExceptions) if (s_renderExceptions.Count > 0) result["renderExceptions"] = s_renderExceptions.ToArray();
         File.WriteAllText(Path.Combine(s_outDir!, s_name + ".result.json"),
             JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true }));
     }
