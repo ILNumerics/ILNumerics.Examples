@@ -35,8 +35,12 @@ internal class StartupHook {
             try {
                 var src = e.Exception.TargetSite?.DeclaringType?.FullName ?? "";
                 if (s_inOffscreenRender) {
-                    // during the offscreen render: record everything, the cause may be outside ILNumerics.Drawing
-                    lock (s_renderExceptions) if (s_renderExceptions.Count < 8) s_renderExceptions.Add($"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}");
+                    // During the offscreen render record exceptions from anywhere: e.g. the Starter plan's data size
+                    // limit (thrown in ILNumerics.Core) silently leaves parts of the render empty.
+                    // The lookup for embedded license resources is expected to fail in the examples: skip it.
+                    if (src == "ILNumerics.Licensing.LicenseManager") return;
+                    var msg = $"{e.Exception.GetType().Name} in {src}.{e.Exception.TargetSite?.Name}: {e.Exception.Message}";
+                    lock (s_renderExceptions) if (s_renderExceptions.Count < 8 && !s_renderExceptions.Contains(msg)) s_renderExceptions.Add(msg);
                     return;
                 }
                 if (!(src.StartsWith("ILNumerics.Drawing") || src.StartsWith("OpenTK"))) return;
@@ -139,32 +143,21 @@ internal class StartupHook {
             result["title"] = form.Text;
             // modal dialogs (MessageBox etc.) on top of the main form are a hint that something went wrong
             result["openForms"] = forms.Cast<System.Windows.Forms.Form>().Select(f => f.GetType().FullName + ": " + f.Text).ToArray();
+            var panels = FindPanels(form).ToList();
+            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
             try {
                 form.WindowState = System.Windows.Forms.FormWindowState.Normal;
-                form.TopMost = true; form.Activate(); form.Refresh();
+                form.TopMost = true; form.Activate();
+                foreach (System.Windows.Forms.Control c in panels) NudgeSize(c);
+                form.Refresh();
                 System.Windows.Forms.Application.DoEvents();
                 SaveScreen(form.Bounds, Path.Combine(s_outDir!, s_name + ".screen.png"));
             } catch (Exception exc) { result["screenError"] = exc.Message; }
 
-            var panels = FindPanels(form).ToList();
-            result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
-            result["screen"] = System.Windows.Forms.Screen.FromControl(form).Bounds.ToString();
-            result["formBounds"] = form.Bounds.ToString();
-            result["deviceDpi"] = form.DeviceDpi;
             for (int i = 0; i < panels.Count; i++) {
                 var c = (System.Windows.Forms.Control)panels[i];
-                result["panelGeometry" + Suffix(i)] = DescribeWindows(c);
                 try { SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png")); }
                 catch (Exception exc) { result["panelScreenError"] = exc.Message; }
-                // Diagnostics: resize the panel once and capture again. Shows whether a clipped OpenGL screenshot
-                // is caused by a stale default framebuffer size.
-                try {
-                    var size = c.Size;
-                    c.Size = new Size(size.Width - 1, size.Height - 1); c.Refresh(); System.Windows.Forms.Application.DoEvents();
-                    c.Size = size; c.Refresh(); System.Windows.Forms.Application.DoEvents();
-                    Thread.Sleep(500); c.Refresh(); System.Windows.Forms.Application.DoEvents();
-                    SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel-resized.png"));
-                } catch (Exception exc) { result["panelResizeError"] = exc.Message; }
             }
             RenderPanels(panels, result);
         });
@@ -172,23 +165,18 @@ internal class StartupHook {
         return true;
     }
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
-    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr h);
-    struct RECT { public int Left, Top, Right, Bottom; }
-
-    // Diagnostics: the panel's screen rectangle and those of all native child windows (e.g. the GLFW window
-    // inside the OpenGL control), so a native window that does not follow the panel's size shows up in the result.
-    static string[] DescribeWindows(System.Windows.Forms.Control c) {
-        var list = new List<string> { $"panel {c.RectangleToScreen(c.ClientRectangle)} dpi {SafeDpi(c.Handle)}" };
-        EnumChildWindows(c.Handle, (h, _) => {
-            var cls = new System.Text.StringBuilder(64); GetClassName(h, cls, 64);
-            GetWindowRect(h, out var r);
-            list.Add($"{cls} visible={IsWindowVisible(h)} {{X={r.Left},Y={r.Top},Width={r.Right - r.Left},Height={r.Bottom - r.Top}}} dpi {SafeDpi(h)}");
-            return true;
-        }, IntPtr.Zero);
-        return list.ToArray();
+    // Software OpenGL (Mesa llvmpipe, as used on CI) keeps the default framebuffer at the size the GL window had
+    // when the context was created. Panels that are resized right after creation (AutoScale, docking) then show
+    // only the lower left part of the scene, above a black bar. One resize afterwards makes the framebuffer
+    // follow the panel. Hardware drivers are not affected; the resize is harmless there.
+    static void NudgeSize(System.Windows.Forms.Control c) {
+        if (c.Width < 2 || c.Height < 2) return;
+        var size = c.Size;
+        c.Size = new Size(size.Width - 1, size.Height - 1); c.Refresh(); System.Windows.Forms.Application.DoEvents();
+        c.Size = size; c.Refresh(); System.Windows.Forms.Application.DoEvents();
+        Thread.Sleep(300);
+        c.Refresh(); System.Windows.Forms.Application.DoEvents();
     }
-    static uint SafeDpi(IntPtr h) { try { return GetDpiForWindow(h); } catch { return 0; } }
 
     static IEnumerable<object> FindPanels(System.Windows.Forms.Control c) {
         foreach (System.Windows.Forms.Control child in c.Controls) {
@@ -267,12 +255,6 @@ internal class StartupHook {
         return get(5000);
     }
 
-    static ILNumerics.Drawing.Scene UserScene(object panel) => panel switch {
-        ILNumerics.Drawing.Controls.WinForms.Panel p => p.Scene,
-        ILNumerics.Drawing.Controls.WPF.Panel p => p.Scene,
-        _ => throw new ArgumentException("not an ILNumerics panel")
-    };
-
     static string? DriverName(object panel) => panel switch {
         ILNumerics.Drawing.Controls.WinForms.Panel p => p.RendererType.ToString(),
         ILNumerics.Drawing.Controls.WPF.Panel p => p.RendererType.ToString(),
@@ -299,13 +281,6 @@ internal class StartupHook {
                     drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
                 }
                 renders.Add(new { file, ok = true });
-                // Diagnostics: the same, from the panel's (user side) Scene instead of the panel's render scene.
-                try {
-                    var userScene = UserScene(panels[i]);
-                    using var drv2 = new ILNumerics.Drawing.GDIDriver(800, 600, userScene, Color.White);
-                    drv2.Render();
-                    drv2.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, s_name + Suffix(i) + ".userscene.png"));
-                } catch (Exception exc) { result["userSceneError" + Suffix(i)] = exc.Message; }
             } catch (Exception exc) {
                 renders.Add(new { file, ok = false, error = exc.ToString() });
                 Interlocked.Exchange(ref s_failed, 1);

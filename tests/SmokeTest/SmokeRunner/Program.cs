@@ -125,6 +125,7 @@ Result RunOne(string relProject) {
     p.StandardInput.Close();
 
     string? renderFile = null;
+    bool starterLimited = false;
     if (isWeb) {
         renderFile = ProbeWeb(port, name, res);
         if (!p.HasExited) p.Kill(true);
@@ -152,6 +153,12 @@ Result RunOne(string relProject) {
             res.Passed = true; res.Message = "window shown, no ILNumerics panel found"; return res;
         }
         renderFile = renders[0].GetProperty("file").GetString();
+        // The offscreen (GDI) render allocates ILNumerics arrays and is therefore subject to the Starter plan's
+        // data size limit; the on-screen OpenGL rendering is not. Say so, so an incomplete render is not mistaken
+        // for a broken example.
+        if (doc.RootElement.TryGetProperty("renderExceptions", out var rex)
+            && rex.EnumerateArray().Any(x => x.GetString()?.Contains("ThrowOnBasicTier") == true))
+            starterLimited = true;
     }
     if (renderFile != null) {
         var path = Path.Combine(outDir, renderFile);
@@ -165,7 +172,7 @@ Result RunOne(string relProject) {
     }
     if (isWeb && res.Message != null) return res;
     res.Passed = true;
-    res.Message ??= (res.ScreenCoverage ?? res.Coverage) is double c ? $"{c:0.0}% of panel covered (offscreen render {res.Coverage:0.0}%)" : "ok";
+    res.Message ??= (res.ScreenCoverage ?? res.Coverage) is double c ? $"{c:0.0}% of panel covered (offscreen render {res.Coverage:0.0}%{(starterLimited ? ", incomplete: Starter data size limit" : "")})" : "ok";
     return res;
 }
 
