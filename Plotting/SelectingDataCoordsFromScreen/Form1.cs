@@ -14,12 +14,12 @@ namespace SelectingDataCoordsFromScreen {
         }
 
         // The local panel hosting the scene
-        ILNumerics.Drawing.Panel m_panel;
+        ILNumerics.Drawing.Controls.WinForms.Panel m_panel;
         
         private void Form1_Load(object sender, EventArgs e) {
 
-            // create, connect and configure the ILNumerics.Drawing.Panel: 
-            m_panel = new ILNumerics.Drawing.Panel();
+            // create, connect and configure the ILNumerics.Drawing.Controls.WinForms.Panel: 
+            m_panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             // use Panel_Load for configuring your scene!
             m_panel.Load += Panel_Load;
 

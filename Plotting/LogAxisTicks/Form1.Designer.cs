@@ -28,7 +28,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -108,7 +108,7 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;

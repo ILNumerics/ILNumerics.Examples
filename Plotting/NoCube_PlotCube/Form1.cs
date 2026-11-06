@@ -16,13 +16,13 @@ using static ILNumerics.Globals;
 namespace NoCube_PlotCube {
     public partial class Form1 : Form {
 
-        ILNumerics.Drawing.Panel panel;
+        ILNumerics.Drawing.Controls.WinForms.Panel panel;
 
         PlotCube PlotCube { get { return panel?.Scene.First<PlotCube>(); } }
 
         public Form1() {
             InitializeComponent();
-            panel = new ILNumerics.Drawing.Panel();
+            panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             Controls.Add(panel);
             panel.Dock = DockStyle.Fill;
             panel.Load += Panel_Load;

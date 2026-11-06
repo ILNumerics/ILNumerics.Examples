@@ -13,12 +13,12 @@ using System.Windows.Forms;
 namespace WindowsFormsApp1 {
     public partial class Form1 : Form {
 
-        ILNumerics.Drawing.Panel m_panel; 
+        ILNumerics.Drawing.Controls.WinForms.Panel m_panel; 
         public Form1() {
             InitializeComponent();
 
             // create & configure the panel
-            m_panel = new ILNumerics.Drawing.Panel();
+            m_panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             Controls.Add(m_panel);
             m_panel.Dock = DockStyle.Fill;
             

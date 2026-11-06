@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.btn1DBoundConstraint = new System.Windows.Forms.Button();
             this.btn2DEqualty = new System.Windows.Forms.Button();
             this.btn2DInEqual = new System.Windows.Forms.Button();
@@ -108,7 +108,7 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
         private System.Windows.Forms.Button btn1DBoundConstraint;
         private System.Windows.Forms.Button btn2DEqualty;
         private System.Windows.Forms.Button btn2DInEqual;

@@ -141,8 +141,12 @@ internal class StartupHook {
 
             var panels = FindPanels(form).ToList();
             result["panels"] = panels.Select(p => p.GetType().FullName).ToArray();
+            result["screen"] = System.Windows.Forms.Screen.FromControl(form).Bounds.ToString();
+            result["formBounds"] = form.Bounds.ToString();
+            result["deviceDpi"] = form.DeviceDpi;
             for (int i = 0; i < panels.Count; i++) {
                 var c = (System.Windows.Forms.Control)panels[i];
+                result["panelGeometry" + Suffix(i)] = DescribeWindows(c);
                 try { SaveScreen(c.RectangleToScreen(c.ClientRectangle), Path.Combine(s_outDir!, s_name + Suffix(i) + ".panel.png")); }
                 catch (Exception exc) { result["panelScreenError"] = exc.Message; }
             }
@@ -151,6 +155,24 @@ internal class StartupHook {
         WriteResult(result);
         return true;
     }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h, out RECT r);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr h);
+    struct RECT { public int Left, Top, Right, Bottom; }
+
+    // Diagnostics: the panel's screen rectangle and those of all native child windows (e.g. the GLFW window
+    // inside the OpenGL control), so a native window that does not follow the panel's size shows up in the result.
+    static string[] DescribeWindows(System.Windows.Forms.Control c) {
+        var list = new List<string> { $"panel {c.RectangleToScreen(c.ClientRectangle)} dpi {SafeDpi(c.Handle)}" };
+        EnumChildWindows(c.Handle, (h, _) => {
+            var cls = new System.Text.StringBuilder(64); GetClassName(h, cls, 64);
+            GetWindowRect(h, out var r);
+            list.Add($"{cls} visible={IsWindowVisible(h)} {{X={r.Left},Y={r.Top},Width={r.Right - r.Left},Height={r.Bottom - r.Top}}} dpi {SafeDpi(h)}");
+            return true;
+        }, IntPtr.Zero);
+        return list.ToArray();
+    }
+    static uint SafeDpi(IntPtr h) { try { return GetDpiForWindow(h); } catch { return 0; } }
 
     static IEnumerable<object> FindPanels(System.Windows.Forms.Control c) {
         foreach (System.Windows.Forms.Control child in c.Controls) {
@@ -215,11 +237,11 @@ internal class StartupHook {
     #endregion
 
     #region ILNumerics rendering
-    static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
+    static bool IsIlnPanel(object o) => o is ILNumerics.Drawing.Controls.WinForms.Panel || o is ILNumerics.Drawing.Controls.WPF.Panel;
 
     // Configure() first: it synchronizes changes the example made to panel.Scene into the scene the panel renders.
     static ILNumerics.Drawing.Scene CurrentScene(object panel) => panel switch {
-        ILNumerics.Drawing.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
+        ILNumerics.Drawing.Controls.WinForms.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
         ILNumerics.Drawing.Controls.WPF.Panel p => ConfigureAnd(p.Configure, p.GetCurrentScene),
         _ => throw new ArgumentException("not an ILNumerics panel")
     };
@@ -229,9 +251,15 @@ internal class StartupHook {
         return get(5000);
     }
 
+    static ILNumerics.Drawing.Scene UserScene(object panel) => panel switch {
+        ILNumerics.Drawing.Controls.WinForms.Panel p => p.Scene,
+        ILNumerics.Drawing.Controls.WPF.Panel p => p.Scene,
+        _ => throw new ArgumentException("not an ILNumerics panel")
+    };
+
     static string? DriverName(object panel) => panel switch {
-        ILNumerics.Drawing.Panel p => p.Driver.ToString(),
-        ILNumerics.Drawing.Controls.WPF.Panel p => p.Driver.ToString(),
+        ILNumerics.Drawing.Controls.WinForms.Panel p => p.RendererType.ToString(),
+        ILNumerics.Drawing.Controls.WPF.Panel p => p.RendererType.ToString(),
         _ => null
     };
 
@@ -245,10 +273,18 @@ internal class StartupHook {
                 var scene = CurrentScene(panels[i]);
                 scene.Configure();
                 result["drawables" + (i == 0 ? "" : "." + i)] = scene.Find<ILNumerics.Drawing.Drawable>().Count();
-                using var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White);
-                drv.Render();
-                drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
+                using (var drv = new ILNumerics.Drawing.GDIDriver(800, 600, scene, Color.White)) {
+                    drv.Render();
+                    drv.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, file));
+                }
                 renders.Add(new { file, ok = true });
+                // Diagnostics: the same, from the panel's (user side) Scene instead of the panel's render scene.
+                try {
+                    var userScene = UserScene(panels[i]);
+                    using var drv2 = new ILNumerics.Drawing.GDIDriver(800, 600, userScene, Color.White);
+                    drv2.Render();
+                    drv2.BackBuffer.SaveBitmap(Path.Combine(s_outDir!, s_name + Suffix(i) + ".userscene.png"));
+                } catch (Exception exc) { result["userSceneError" + Suffix(i)] = exc.Message; }
             } catch (Exception exc) {
                 renders.Add(new { file, ok = false, error = exc.ToString() });
                 Interlocked.Exchange(ref s_failed, 1);

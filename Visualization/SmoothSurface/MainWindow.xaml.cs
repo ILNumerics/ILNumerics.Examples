@@ -38,9 +38,9 @@ namespace ScatteredDataSurfaceExample {
         /// <summary>
         ///  Convenience property to easily access the ILNumerics panel.
         /// </summary>
-        internal ILNumerics.Drawing.Panel Panel {
+        internal ILNumerics.Drawing.Controls.WinForms.Panel Panel {
             get {
-                return WFHost.Child as ILNumerics.Drawing.Panel;
+                return WFHost.Child as ILNumerics.Drawing.Controls.WinForms.Panel;
             }
         }
         /// <summary>
@@ -63,7 +63,7 @@ namespace ScatteredDataSurfaceExample {
         private void WFHost_Loaded(object sender, RoutedEventArgs e) {
 
             // CREATE THE ILNumerics PANEL 
-            var panel = new ILNumerics.Drawing.Panel();
+            var panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             panel.RendererType = RendererTypes.GDI;  // did you know that we can run w/o hardware acceleration, too? 
 
             // WPF: ASSIGN THE PANEL AS CHILD OF THE WindowsFormsHost

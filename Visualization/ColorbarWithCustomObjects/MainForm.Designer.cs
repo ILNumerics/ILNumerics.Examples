@@ -24,8 +24,8 @@
         /// </summary>
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
-            this.ilPanel2 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
+            this.ilPanel2 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -96,8 +96,8 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel ilPanel1;
-        private ILNumerics.Drawing.Panel ilPanel2;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
     }

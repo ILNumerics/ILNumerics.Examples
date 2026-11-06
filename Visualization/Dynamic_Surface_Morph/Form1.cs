@@ -49,7 +49,7 @@ namespace Dynamic_Surface_Morph {
                     // blend between A and B 
                     Array<float> C = A * time + B * (1 - time);
                     // update the surface 
-                    var sf = (send as ILNumerics.Drawing.Panel).Scene.First<Surface>();
+                    var sf = (send as ILNumerics.Drawing.Controls.WinForms.Panel).Scene.First<Surface>();
                     sf.UpdateColormapped(C, dataValues: C);
                 }
             };

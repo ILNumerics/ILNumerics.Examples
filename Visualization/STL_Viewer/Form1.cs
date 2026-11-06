@@ -18,7 +18,7 @@ using ILNumerics.Drawing.Plotting;
 namespace STL_Viewer {
     public partial class Form1 : Form {
 
-        ILNumerics.Drawing.Panel Panel;
+        ILNumerics.Drawing.Controls.WinForms.Panel Panel;
         Triangles m_model;
         private const string GroupTag = "STLGroup";
 
@@ -32,7 +32,7 @@ namespace STL_Viewer {
         protected override void OnLoad(EventArgs e) {
             base.OnLoad(e);
 
-            Panel = new ILNumerics.Drawing.Panel();
+            Panel = new ILNumerics.Drawing.Controls.WinForms.Panel();
             Panel.Dock = DockStyle.Fill;
             Panel.Load += Panel_Load;
             Controls.Add(Panel);

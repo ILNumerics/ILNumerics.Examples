@@ -24,7 +24,7 @@
         /// </summary>
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.ilPanel1 = new ILNumerics.Drawing.Panel();
+            this.ilPanel1 = new ILNumerics.Drawing.Controls.WinForms.Panel();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
@@ -70,7 +70,7 @@
 
         #endregion
 
-        private ILNumerics.Drawing.Panel ilPanel1;
+        private ILNumerics.Drawing.Controls.WinForms.Panel ilPanel1;
         private System.Windows.Forms.TrackBar trackBar1;
     }
 }
